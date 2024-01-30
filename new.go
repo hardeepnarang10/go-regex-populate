@@ -13,8 +13,6 @@ type populate struct {
 }
 
 func New(entropyFunc func(bool) bool) *populate {
-	newGenCache()
-
 	p := &populate{
 		genMap: make(map[string]regen.Generator),
 	}

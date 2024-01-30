@@ -8,19 +8,13 @@ import (
 	regen "github.com/zach-klippenstein/goregen"
 )
 
-type genCache map[string]regen.Generator
-
-var cache genCache
-
-var once sync.Once
-
-func newGenCache() {
-	once.Do(func() {
-		cache = make(genCache)
-	})
+type generatorMap struct {
+	store sync.Map
 }
 
-func (g genCache) register(pattern string) (regen.Generator, error) {
+var cache generatorMap = generatorMap{}
+
+func (g *generatorMap) register(pattern string) (regen.Generator, error) {
 	if len(pattern) == 0 {
 		return nil, ErrEmptyPattern
 	}
@@ -32,9 +26,9 @@ func (g genCache) register(pattern string) (regen.Generator, error) {
 	}
 	key := string(keyHash.Sum(nil))
 
-	gen, found := g[key]
+	generator, found := g.store.Load(key)
 	if !found {
-		gen, err = regen.NewGenerator(pattern,
+		generator, err = regen.NewGenerator(pattern,
 			&regen.GeneratorArgs{
 				MinUnboundedRepeatCount: minUnboundedRepeatCount,
 				MaxUnboundedRepeatCount: maxUnboundedRepeatCount,
@@ -43,7 +37,7 @@ func (g genCache) register(pattern string) (regen.Generator, error) {
 		if err != nil {
 			return nil, fmt.Errorf("unable to create generator for pattern %q: %w", pattern, err)
 		}
-		g[key] = gen
+		g.store.Store(key, generator)
 	}
-	return g[key], nil
+	return generator.(regen.Generator), nil
 }
