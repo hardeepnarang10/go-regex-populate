@@ -3,19 +3,14 @@ package goregexpopulate
 import (
 	"fmt"
 	"reflect"
-
-	regen "github.com/zach-klippenstein/goregen"
 )
 
 type populate struct {
-	genMap      map[string]regen.Generator
 	entropyFunc func(bool) bool
 }
 
 func New(entropyFunc func(bool) bool) *populate {
-	p := &populate{
-		genMap: make(map[string]regen.Generator),
-	}
+	p := &populate{}
 
 	p.entropyFunc = entropyDefault
 	if entropyFunc != nil {
